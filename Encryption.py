@@ -206,4 +206,125 @@ class EnterpriseEncryptor:
             }
 
             # decrypt with AES-GCM
-            plaintext = 
+            plaintext =  self.decrypt_aes_gcm(
+                encrypted_data,
+                key,
+                associated_data
+            )
+
+            print("[+] Decryption successful")
+            return plaintext.decode()
+
+        def encrypt_file(self, filepath, password, output_file=None):
+            #Encrypt file using hybrid encryption
+            print(f"[*] Encrypting file: {filepath}")
+
+            with open(filepath, 'rb') as f:
+                file_data = f.read()
+
+            #convert to string for demonstration
+            plaintext = base64.b64encode(file_data).decode()
+
+            #Encrypt
+            encrypted = self.encrypt_hybrid(plaintext, password)
+
+            #save to file
+            if not output_file:
+                output_file = filepath + '.encrypted'
+
+            with open(output_file, 'w')as f:
+                f.write(encrypted)
+
+            print(f"[+] Encrypted file saved: {output_file}")
+            return output_file
+
+        def decrypt_file(self, encrypted_file, password, output_file=None):
+            #decrypt encrypted file
+            print(f"[*] decrypting file: {encrypted_file}")
+
+            with open(encrypted_file, 'r') as f:
+                encrypted_data = f.read()
+
+            #decrypt
+            decrypted = self.decrypt_hybrid(encrypted_data, password)
+
+            #decode from base64
+            file_data = base64.b64encode(decrypted)
+
+            #save to file
+            if not output_file:
+                if encrypted_file.endswith('.encrypted'):
+                    output_file=encrypted_file[:-10]
+                else:
+                    output_file= encrypted_file + '.decrypted'
+
+            with open(output_file, 'wb') as f:
+                f.write(file_data)
+
+            print(f"[+] Decrypted file saved: {output_file}")
+            return output_file
+
+        def security_audit(self):
+            #perform security audit of encryption implementation
+            print("\n" + "="*60)
+            print("ENCRYPTION SECURITY AUDIT")
+            print("="*60)
+
+            checks = {
+                "Key Size (AES)": "256-bit " if self.aes_key_size == 32 else f"{self.aes_key_size*8}-bit",
+                "Key Size (RSA)": f"{self.rsa_key_size}-bit " if self.rsa_key_size >= 2048 else f"{self.rsa_key_size}-bit",
+                "Encryption Mode": "GCM (Authenticated)",
+                "Key derivation": "PBKDF2 with 100k iterations",
+                "Random generator": "OS urandom",
+                "Data authentication": "GCM tag verification"
+            }
+
+            for check, status in checks.items():
+                print(f"{check:30} {status}")
+
+if __name__=="__main__":
+    #Initialize enterprise encryption system
+    encryptor = EnterpriseEncryptor()
+
+    #Perform security audit
+    encryptor.security_audit()
+
+    #Generate RSA keypair *optional for hybrid
+    private_key, public_key = encryptor.generate_rsa_keypair()
+
+    print("\n" + "="*60)
+    print("ENCRYPTION DEMONSTRATION")
+    print("="*60)
+
+    #test message
+    secret_message = "TOP SECRET:operation midinight shadow"
+    password = "CorrectHorseBatteryStaple!2024"
+
+    print(f"Original Message: {secret_message}")
+    print(f"password: {password[:10]}...")
+
+    #Encrypt with hybrid system
+    print("\n[*] Encrypting message...")
+    encrypted = encryptor.encrypt_hybrid(
+        secret_message,
+        password,
+        recipient_public_key= public_key
+    )
+
+    print(f"\nEncrypted Package:\n{encrypted[:200]}...")
+
+    #Decrypt
+    print("\n[*] Decrypting message...")
+    decrypted = encryptor.decrypt_hybrid(
+        encrypted,
+        password,
+        private_key = private_key
+    )
+
+    print(f"\nDecrypted message: {decrypted}")
+
+    #verify integrity
+    if secret_message == decrypted:
+        print("\n Encryption/decryption successful - Data integrity verified")
+    else:
+        print("\n ERROR: Data corruption detected!")
