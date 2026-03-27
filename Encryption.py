@@ -133,7 +133,7 @@ class EnterpriseEncryptor:
 
             #step 2: encrypt data with AES-GCM
             encrypted = self.encrypt_aes_gcm(
-                plaintext.encode()
+                plaintext.encode(),
                 key,
                 associated_data=b"ENTERPRISE_ENCRYPTION"
             )
@@ -142,7 +142,7 @@ class EnterpriseEncryptor:
             package = {
                 'version': '1.0',
                 'timestamp': datetime.now().isoformat(),
-                'algorithm': 'AES-256-GCM'
+                'algorithm': 'AES-256-GCM',
                 'salt': base64.b64encode(salt).decode(),
                 'nonce': base64.b64encode(encrypted['nonce']).decode(),
                 'ciphertext': base64.b64encode(encrypted['ciphertext']).decode(),
@@ -155,7 +155,7 @@ class EnterpriseEncryptor:
                     key,
                     asym_padding.OAEP(
                         mgf = asym_padding.MGF1(algorithm=hashes.SHA256()),
-                        algorithm = hashes.SHA256()
+                        algorithm = hashes.SHA256(),
                         label=None
                     )
                 )
